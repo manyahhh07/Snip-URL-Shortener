@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SNIP — URL Shortener</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f5ede0;
+      --surface:   #fdf6ee;
+      --border:    #c9b899;
+      --accent:    #6b4a1e;
+      --accent2:   #4a7a28;
+      --accent3:   #7a7a1e;
+      --text:      #2c1a08;
+      --muted:     #7a6040;
+      --danger:    #b83228;
+      --card-bg:   #faebd7;
+      --radius:    12px;
+      --mono:      'DM Mono', monospace;
+      --sans:      'Syne', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Grid Bg ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(107,74,30,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(107,74,30,0.06) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Glow orbs ─── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.55;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 { width: 500px; height: 500px; background: #D6F3BA; top: -200px; right: -100px; }
+    .orb-2 { width: 400px; height: 400px; background: #F3D6BA; bottom: -100px; left: -100px; }
+
+    /* ─── Layout ─── */
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── Header ─── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 32px 0 0;
+    }
+
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--text);
+    }
+    .logo span { color: var(--accent); }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: rgba(243,214,186,0.5);
+      padding: 4px 10px;
+      border-radius: 100px;
+    }
+
+    /* ─── Hero ─── */
+    .hero {
+      padding: 72px 0 48px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+      position: relative;
+    }
+    .hero h1 em::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      opacity: 0.4;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1.1rem;
+      font-family: var(--mono);
+      letter-spacing: -0.01em;
+    }
+
+    /* ─── Form Card ─── */
+    .form-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .form-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #c9a06a, transparent);
+      opacity: 0.5;
+    }
+
+    .field { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input[type="text"],
+    input[type="url"] {
+      width: 100%;
+      background: #fff8f0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(107,74,30,0.12);
+    }
+    input::placeholder { color: var(--muted); }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+      padding: 14px 28px;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      width: 100%;
+      margin-top: 8px;
+    }
+    .btn-primary:hover { background: #8a6030; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(107,74,30,0.25); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ─── Result Box ─── */
+    .result-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 32px;
+      display: none;
+      animation: slideUp 0.3s ease;
+    }
+    .result-box.visible { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .result-url-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+
+    #resultUrl {
+      font-family: var(--mono);
+      font-size: 1.05rem;
+      color: var(--accent);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    #resultUrl:hover { text-decoration: underline; }
+
+    .copy-btn {
+      background: var(--border);
+      color: var(--text);
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { background: var(--accent); color: #fff; }
+    .copy-btn.copied { background: var(--accent); color: #fff; }
+
+    .result-meta {
+      display: flex;
+      gap: 20px;
+      margin-top: 16px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ─── Stats Grid ─── */
+    .stats-section { margin: 48px 0 24px; }
+
+    .section-title {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 520px) { .stats-grid { grid-template-columns: 1fr; } }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(107,74,30,0.1); }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--text);
+    }
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: 0.06em;
+    }
+
+    /* ─── URL Table ─── */
+    .urls-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 60px;
+    }
+
+    .urls-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .urls-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .refresh-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(107,74,30,0.06); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 12px 24px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 14px 24px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      border-bottom: 1px solid rgba(30,30,46,0.6);
+      max-width: 0;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .url-original {
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 260px;
+    }
+    .url-short a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .url-short a:hover { text-decoration: underline; }
+
+    .click-badge {
+      display: inline-block;
+      background: rgba(107,74,30,0.12);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+    }
+
+    .delete-url-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      transition: color 0.15s;
+      padding: 4px;
+    }
+    .delete-url-btn:hover { color: var(--danger); }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+    }
+
+    /* ─── Toast ─── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--text);
+      z-index: 999;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-color: var(--accent); color: var(--accent); }
+    .toast.error { border-color: var(--danger); color: var(--danger); }
+
+    /* ─── Error text ─── */
+    .field-error {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--danger);
+      margin-top: 6px;
+    }
+
+    /* ─── Spinner ─── */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Footer ─── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="container">
+    <header>
+      <div class="logo">SN<span>I</span>P</div>
+      <span class="badge">URL Shortener v1.0</span>
+    </header>
+
+    <section class="hero">
+      <h1>Shorten. Share.<br /><em>Track.</em></h1>
+      <p>// Fast, minimal, open-source URL shortener</p>
+    </section>
+
+    <!-- Main Form -->
+    <div class="form-card">
+      <div class="field">
+        <label>Destination URL</label>
+        <input type="url" id="urlInput" placeholder="https://your-long-url.com/..." autocomplete="off" />
+        <div class="field-error" id="urlError"></div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Custom Slug <span style="color:var(--muted);font-size:0.65rem">(optional)</span></label>
+          <input type="text" id="slugInput" placeholder="my-link" maxlength="32" autocomplete="off" />
+          <div class="field-error" id="slugError"></div>
+        </div>
+        <div class="field">
+          <label>Expires In <span style="color:var(--muted);font-size:0.65rem">(optional)</span></label>
+          <input type="text" id="expiresInput" placeholder="7d, 24h, 30m" autocomplete="off" />
+          <div class="field-error" id="expiresError"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="shortenBtn" onclick="shortenUrl()">
+        <span id="btnText">Shorten URL</span>
+      </button>
+    </div>
+
+    <!-- Result -->
+    <div class="result-box" id="resultBox">
+      <div class="result-label">✓ Your short URL</div>
+      <div class="result-url-row">
+        <a id="resultUrl" href="#" target="_blank" rel="noopener noreferrer"></a>
+        <button class="copy-btn" id="copyBtn" onclick="copyUrl()">Copy</button>
+      </div>
+      <div class="result-meta">
+        <span id="resultOriginal"></span>
+        <span id="resultExpires"></span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <section class="stats-section">
+      <div class="section-title">Overview</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-label">Total Links</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statClicks">—</div>
+          <div class="stat-label">Total Clicks</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statAvg">—</div>
+          <div class="stat-label">Avg. Clicks</div>
+        </div>
+      </div>
+
+      <div class="section-title">Recent Links</div>
+      <div class="urls-card">
+        <div class="urls-header">
+          <div class="urls-title">All URLs</div>
+          <button class="refresh-btn" onclick="loadUrls()">↺ Refresh</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Short URL</th>
+              <th>Destination</th>
+              <th>Clicks</th>
+              <th>Created</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="urlsTable">
+            <tr><td colspan="5" class="empty-state">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    Built with Node.js · Express · SQLite · Open Source
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API_BASE = '/api';
+    let currentShortUrl = '';
+
+    // ─── Shorten URL ─────────────────────────────────────────────────────────
+    async function shortenUrl() {
+      clearErrors();
+
+      const url = document.getElementById('urlInput').value.trim();
+      const slug = document.getElementById('slugInput').value.trim();
+      const expires = document.getElementById('expiresInput').value.trim();
+
+      if (!url) { showFieldError('urlError', 'URL is required'); return; }
+
+      setLoading(true);
+
+      try {
+        const body = { url };
+        if (slug) body.customSlug = slug;
+        if (expires) body.expiresIn = expires;
+
+        const res = await fetch(`${API_BASE}/shorten`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          if (data.errors) {
+            data.errors.forEach(e => {
+              if (e.field === 'url') showFieldError('urlError', e.message);
+              if (e.field === 'customSlug') showFieldError('slugError', e.message);
+              if (e.field === 'expiresIn') showFieldError('expiresError', e.message);
+            });
+          } else {
+            showToast(data.message || 'Something went wrong', 'error');
+          }
+          return;
+        }
+
+        showResult(data);
+        loadStats();
+        loadUrls();
+        showToast('Short URL created!', 'success');
+      } catch (err) {
+        showToast('Network error — is the server running?', 'error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function showResult(data) {
+      currentShortUrl = data.shortUrl;
+      const box = document.getElementById('resultBox');
+      const link = document.getElementById('resultUrl');
+      link.href = data.shortUrl;
+      link.textContent = data.shortUrl;
+
+      const orig = document.getElementById('resultOriginal');
+      const exp = document.getElementById('resultExpires');
+      orig.textContent = '→ ' + truncate(data.originalUrl, 50);
+      exp.textContent = data.expiresAt ? `Expires: ${fmtDate(data.expiresAt)}` : '';
+
+      box.classList.add('visible');
+      document.getElementById('copyBtn').textContent = 'Copy';
+      document.getElementById('copyBtn').classList.remove('copied');
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // ─── Copy ────────────────────────────────────────────────────────────────
+    function copyUrl() {
+      navigator.clipboard.writeText(currentShortUrl).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+
+    // ─── Stats ───────────────────────────────────────────────────────────────
+    async function loadStats() {
+      try {
+        const res = await fetch(`${API_BASE}/stats`);
+        const { data } = await res.json();
+        document.getElementById('statTotal').textContent = fmtNum(data.totalUrls);
+        document.getElementById('statClicks').textContent = fmtNum(data.totalClicks);
+        const avg = data.totalUrls > 0 ? Math.round(data.totalClicks / data.totalUrls) : 0;
+        document.getElementById('statAvg').textContent = fmtNum(avg);
+      } catch {}
+    }
+
+    // ─── URL Table ───────────────────────────────────────────────────────────
+    async function loadUrls() {
+      try {
+        const res = await fetch(`${API_BASE}/urls?limit=10`);
+        const { data } = await res.json();
+        const tbody = document.getElementById('urlsTable');
+
+        if (!data.urls.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No URLs yet. Shorten one above!</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.urls.map(u => `
+          <tr>
+            <td class="url-short"><a href="/${u.short_code}" target="_blank">/${u.short_code}</a></td>
+            <td><div class="url-original" title="${escHtml(u.original_url)}">${escHtml(truncate(u.original_url, 45))}</div></td>
+            <td><span class="click-badge">${fmtNum(u.click_count)}</span></td>
+            <td style="color:var(--muted)">${fmtDate(u.created_at)}</td>
+            <td><button class="delete-url-btn" onclick="deleteUrl('${u.short_code}')" title="Delete">✕</button></td>
+          </tr>
+        `).join('');
+      } catch {}
+    }
+
+    async function deleteUrl(code) {
+      if (!confirm(`Delete /${code}?`)) return;
+      try {
+        const res = await fetch(`${API_BASE}/urls/${code}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast(`/${code} deleted`, 'success');
+          loadUrls();
+          loadStats();
+        }
+      } catch {}
+    }
+
+    // ─── Enter key ───────────────────────────────────────────────────────────
+    document.getElementById('urlInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') shortenUrl();
+    });
+
+    // ─── Utils ───────────────────────────────────────────────────────────────
+    function setLoading(on) {
+      const btn = document.getElementById('shortenBtn');
+      const text = document.getElementById('btnText');
+      btn.disabled = on;
+      text.innerHTML = on ? '<span class="spinner"></span> Shortening...' : 'Shorten URL';
+    }
+
+    function clearErrors() {
+      ['urlError', 'slugError', 'expiresError'].forEach(id => {
+        document.getElementById(id).textContent = '';
+      });
+    }
+
+    function showFieldError(id, msg) {
+      document.getElementById(id).textContent = msg;
+    }
+
+    function showToast(msg, type = 'default') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type} show`;
+      setTimeout(() => { t.className = 'toast'; }, 2800);
+    }
+
+    function truncate(str, n) {
+      return str.length > n ? str.slice(0, n) + '…' : str;
+    }
+
+    function fmtNum(n) {
+      return Number(n).toLocaleString();
+    }
+
+    function fmtDate(str) {
+      return new Date(str).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────────────────
+    loadStats();
+    loadUrls();
+  </script>
+</body>
+</html>

@@ -1,12 +1,18 @@
-# SNIP — URL Shortener
+<div align="center">
 
-A production-grade URL shortener built with **Node.js**, **Express**, and **SQLite**. Features custom slugs, link analytics, rate limiting, SSRF protection, and a clean dark-mode UI.
+# SNIP – URL Shortening & Link Analytics Platform
 
-![Node.js](https://img.shields.io/badge/Node.js-18%2B-green?logo=nodedotjs)
+Production-grade URL shortening platform featuring **custom slugs**, **link analytics**, **link expiration**, **rate limiting**, **duplicate detection**, and **SSRF protection**.
+
+Built with **Node.js + Express + SQLite**, focused on scalable URL management, secure API design, and high-performance link redirection.
+
+![Node.js](https://img.shields.io/badge/Node.js-20.x-green?logo=node.js)
 ![Express](https://img.shields.io/badge/Express-4.x-lightgrey?logo=express)
 ![SQLite](https://img.shields.io/badge/SQLite-3.x-blue?logo=sqlite)
 ![Tests](https://img.shields.io/badge/Tests-Jest-orange?logo=jest)
 ![License](https://img.shields.io/badge/License-MIT-blue)
+
+</div>
 
 ---
 

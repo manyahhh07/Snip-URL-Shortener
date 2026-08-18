@@ -12,7 +12,6 @@ Built with **Node.js + Express + SQLite**, focused on scalable URL management, s
 ![Tests](https://img.shields.io/badge/Tests-Jest-orange?logo=jest)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
-</div>
 
 ---
 

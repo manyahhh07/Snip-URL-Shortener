@@ -13,6 +13,8 @@ Built with **Node.js + Express + SQLite**, focused on scalable URL management, s
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
 
+</div>
+
 ---
 
 ## Features

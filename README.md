@@ -1,3 +1,4 @@
+<div align="center">
 
 # SNIP – URL Shortening & Link Analytics Platform
 

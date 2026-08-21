@@ -31,6 +31,7 @@ Built with **Node.js + Express + SQLite**, focused on scalable URL management, s
 - **Structured Logging** — Winston with daily log rotation
 - **Full Test Suite** — Unit + integration tests via Jest & Supertest
 
+---
 
 ## Screenshots
 

@@ -1,6 +1,6 @@
 <div align="center">
 
-# SNIP – URL Shortening & Link Analytics Platform
+# SNIP – URL Shortening & Link Analytics Platf
 
 Production-grade URL shortening platform featuring **custom slugs**, **link analytics**, **link expiration**, **rate limiting**, **duplicate detection**, and **SSRF protection**.
 

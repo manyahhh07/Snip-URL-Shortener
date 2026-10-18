@@ -2,7 +2,7 @@
 
 # SNIP – URL Shortening & Link Analytics Platform
 
-Production-grade URL shortening platform featuring **custom slugs**, **link analytics**, **link expiration**, **rate limiting**, **duplicate detection**, and **SSRF **.
+Production-grade URL shortening platform featuring **custom slugs**, **link analytics**, **link expiration**, **rate limiting**, **duplicate detection**, and **SSRF platform**.
 
 Built with **Node.js + Express + SQLite**, focused on scalable URL management, secure API design, and high-performance link redirection.
 
